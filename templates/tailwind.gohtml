@@ -1,0 +1,32 @@
+{{ define "header"}}
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  {{/* <link href="css/tailwind.min.css" rel="stylesheet" type="text/css"> */}}
+
+</head>
+<body>
+  <header class="bg-gradient-to-r from-blue-800 to-indigo-800 text-white">
+    <nav class="px-8 py-6 flex items-center">
+      <div class="flex-grow">
+        <a class="pr-6 font-semibold text-lg hover:text-blue-100" href="/">Home</a>
+        <a class="pr-6 font-semibold text-lg hover:text-blue-100" href="/contact">Contact</a>
+        <a class="pr-6 font-semibold text-lg hover:text-blue-100" href="/faq">Faq</a>
+      </div>
+      <div>
+        <a href="#">Sign in</a>
+        <a href="/sign-up">Sign up</a>
+      
+      </div>
+    </nav>
+  </header>
+{{ end }}
+  <!-- Each page's content goes here -->
+
+{{ define "footer"}}
+ <footer>Copyright some rights 2023</footer>
+</body>
+</html>
+{{ end }}
