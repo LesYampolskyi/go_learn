@@ -1,1 +1,1 @@
-nodemon --exec go run main.go --signal SIGTERM
+nodemon -e 'go, gohtml' -x 'go run main.go' --signal SIGTERM
