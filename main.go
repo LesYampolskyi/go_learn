@@ -26,14 +26,6 @@ type User struct {
 	Name string
 }
 
-// func userHandler(w http.ResponseWriter, r *http.Request) {
-// 	username := chi.URLParam(r, "username")
-// 	user := User{Name: username}
-// 	tpl := filepath.Join("templates", "user.gohtml")
-// 	log.Println(user)
-// 	executeTemplate(w, tpl, user)
-// }
-
 func main() {
 	r := chi.NewRouter()
 	// r.Use(middleware.Logger)
@@ -57,10 +49,14 @@ func main() {
 		"faq.gohtml", "tailwind.gohtml",
 	))))
 
-	r.Get("/sign-up", controllers.StaticHandler(views.Must(views.ParseFS(
+	usersC := controllers.Users{}
+
+	usersC.Template.New = views.Must(views.ParseFS(
 		templates.FS,
 		"sign-up.gohtml", "tailwind.gohtml",
-	))))
+	))
+
+	r.Get("/sign-up", usersC.New)
 
 	// r.Get("/user/{username}", userHandler)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {

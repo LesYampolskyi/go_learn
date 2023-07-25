@@ -2,18 +2,15 @@ package controllers
 
 import (
 	"net/http"
-	"web_dev/views"
 )
 
-func StaticHandler(tpl views.Template) http.HandlerFunc {
+func StaticHandler(tpl Template) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tpl.Execute(w, nil)
 	}
 }
 
-//  Nullam nisl tortor, mattis eu consequat a, faucibus sit amet eros. Morbi luctus turpis tellus, at volutpat nisl convallis id. Duis non magna at justo congue elementum in vel nulla.
-
-func FAQ(tpl views.Template) http.HandlerFunc {
+func FAQ(tpl Template) http.HandlerFunc {
 	questions := []struct {
 		Question string
 		Answer   string
