@@ -57,6 +57,7 @@ func main() {
 	))
 
 	r.Get("/sign-up", usersC.New)
+	r.Post("/users", usersC.Create)
 
 	// r.Get("/user/{username}", userHandler)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
