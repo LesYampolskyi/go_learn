@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"web_dev/controllers"
+	"web_dev/models"
 	"web_dev/templates"
 	"web_dev/views"
 
@@ -49,14 +50,35 @@ func main() {
 		"faq.gohtml", "tailwind.gohtml",
 	))))
 
-	usersC := controllers.Users{}
+	cfg := models.GetDefaultPostgresConfig()
+
+	db, err := models.Open(cfg)
+
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	userService := models.UserService{
+		DB: db,
+	}
+
+	usersC := controllers.Users{
+		UserService: &userService,
+	}
 
 	usersC.Template.New = views.Must(views.ParseFS(
 		templates.FS,
 		"sign-up.gohtml", "tailwind.gohtml",
 	))
+	usersC.Template.SignIn = views.Must(views.ParseFS(
+		templates.FS,
+		"sign-in.gohtml", "tailwind.gohtml",
+	))
 
 	r.Get("/sign-up", usersC.New)
+	r.Get("/sign-in", usersC.SignIn)
+	r.Post("/sign-in", usersC.ProccessSignIn)
 	r.Post("/users", usersC.Create)
 
 	// r.Get("/user/{username}", userHandler)
