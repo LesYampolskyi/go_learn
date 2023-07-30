@@ -10,6 +10,7 @@ import (
 	"web_dev/views"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/csrf"
 )
 
 func executeTemplate(w http.ResponseWriter, filepath string, data interface{}) {
@@ -80,12 +81,16 @@ func main() {
 	r.Get("/sign-in", usersC.SignIn)
 	r.Post("/sign-in", usersC.ProccessSignIn)
 	r.Post("/users", usersC.Create)
+	r.Get("/users/me", usersC.CurrentUser)
 
+	crfKey := "Lb38utheFHaXKAMD6pOgkAHyrPeA2nZV"
+	crfMw := csrf.Protect([]byte(crfKey),
+		csrf.Secure(false))
 	// r.Get("/user/{username}", userHandler)
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Page not found", http.StatusNotFound)
 	})
 
 	fmt.Println("Starting the server on port :8080...")
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":8080", crfMw(r))
 }

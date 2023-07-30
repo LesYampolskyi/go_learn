@@ -2,8 +2,11 @@ package controllers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"web_dev/models"
+
+	"github.com/gorilla/csrf"
 )
 
 type Users struct {
@@ -16,9 +19,11 @@ type Users struct {
 
 func (u Users) New(w http.ResponseWriter, r *http.Request) {
 	var data struct {
-		Email string
+		Email     string
+		CSRFField template.HTML
 	}
 	data.Email = r.FormValue("email")
+	data.CSRFField = csrf.TemplateField(r)
 	u.Template.New.Execute(w, data)
 }
 
@@ -58,5 +63,23 @@ func (u Users) ProccessSignIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
 		return
 	}
+
+	cookies := http.Cookie{
+		Name:     "email",
+		Value:    user.Email,
+		Path:     "/",
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &cookies)
+
 	fmt.Fprintf(w, "User authenticated: %+v", user)
+}
+func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
+	email, err := r.Cookie("email")
+	if err != nil {
+		fmt.Fprint(w, "The email cookies could not be read.")
+		return
+	}
+	fmt.Fprintf(w, "Email cookies is: %s\n", email.Value)
+	fmt.Fprintf(w, "Headers: %s\n", r.Header)
 }

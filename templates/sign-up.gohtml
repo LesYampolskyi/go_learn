@@ -1,6 +1,9 @@
 {{ template "header" }}
 <h1>Sign up</h1>
 <form action="/users" method="post">
+  <div class="hidden">
+    {{.CSRFField}}
+  </div>
   <div>
     <label for="email">Email</label>
     <input name="email" type="email" id="email" placeholder="Enter email"  required
