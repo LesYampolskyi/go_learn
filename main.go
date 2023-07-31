@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"web_dev/controllers"
 	"web_dev/models"
@@ -12,17 +11,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/csrf"
 )
-
-func executeTemplate(w http.ResponseWriter, filepath string, data interface{}) {
-	t, err := views.Parse(filepath)
-	if err != nil {
-		log.Printf("parsing template: %v", err)
-		http.Error(w, "There was template parsing error", http.StatusInternalServerError)
-		return
-	}
-
-	t.Execute(w, data)
-}
 
 type User struct {
 	Name string
@@ -60,12 +48,35 @@ func main() {
 	}
 	defer db.Close()
 
+	_, err = db.Exec(`
+	CREATE TABLE IF NOT EXISTS users (
+		id SERIAL PRIMARY KEY,
+		email TEXT UNIQUE NOT NULL,
+		password_hash TEXT NOT NULL
+	);
+
+	CREATE TABLE IF NOT EXISTS session (
+		id SERIAL PRIMARY KEY,
+		user_id INT UNIQUE,
+		token_hash TEXT NOT NULL
+	);
+`)
+
+	if err != nil {
+		panic(err)
+	}
+
 	userService := models.UserService{
 		DB: db,
 	}
 
+	sessionService := models.SessionService{
+		DB: db,
+	}
+
 	usersC := controllers.Users{
-		UserService: &userService,
+		UserService:    &userService,
+		SessionService: &sessionService,
 	}
 
 	usersC.Template.New = views.Must(views.ParseFS(

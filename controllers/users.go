@@ -2,11 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"web_dev/models"
-
-	"github.com/gorilla/csrf"
 )
 
 type Users struct {
@@ -14,17 +11,16 @@ type Users struct {
 		New    Template
 		SignIn Template
 	}
-	UserService *models.UserService
+	UserService    *models.UserService
+	SessionService *models.SessionService
 }
 
 func (u Users) New(w http.ResponseWriter, r *http.Request) {
 	var data struct {
-		Email     string
-		CSRFField template.HTML
+		Email string
 	}
 	data.Email = r.FormValue("email")
-	data.CSRFField = csrf.TemplateField(r)
-	u.Template.New.Execute(w, data)
+	u.Template.New.Execute(w, r, data)
 }
 
 func (u Users) SignIn(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +28,7 @@ func (u Users) SignIn(w http.ResponseWriter, r *http.Request) {
 		Email string
 	}
 	data.Email = r.FormValue("email")
-	u.Template.SignIn.Execute(w, data)
+	u.Template.SignIn.Execute(w, r, data)
 }
 
 func (u Users) Create(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +40,16 @@ func (u Users) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, "User created: %+v", user)
+	session, err := u.SessionService.Create(user.ID)
+	if err != nil {
+		fmt.Println(err)
+		// TODO: For a long term we should show a warning about not being able to sign in
+		http.Redirect(w, r, "/sign-in", http.StatusFound)
+		return
+	}
+	setCookie(w, CookieSession, session.Token)
+	http.Redirect(w, r, "/users/me", http.StatusFound)
+	// fmt.Fprintf(w, "User created: %+v", user)
 	// fmt.Fpr int(w, "Password: ", r.FormValue("password"))
 }
 
@@ -64,22 +69,29 @@ func (u Users) ProccessSignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookies := http.Cookie{
-		Name:     "email",
-		Value:    user.Email,
-		Path:     "/",
-		HttpOnly: true,
-	}
-	http.SetCookie(w, &cookies)
-
-	fmt.Fprintf(w, "User authenticated: %+v", user)
-}
-func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	email, err := r.Cookie("email")
+	session, err := u.SessionService.Create(user.ID)
 	if err != nil {
-		fmt.Fprint(w, "The email cookies could not be read.")
+		fmt.Println(err)
+		http.Error(w, "Something went wrong.", http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, "Email cookies is: %s\n", email.Value)
-	fmt.Fprintf(w, "Headers: %s\n", r.Header)
+
+	setCookie(w, CookieSession, session.Token)
+	http.Redirect(w, r, "/users/me", http.StatusFound)
+}
+
+func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
+	tokenCookie, err := r.Cookie(CookieSession)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/sign-in", http.StatusFound)
+		return
+	}
+	user, err := u.SessionService.User(tokenCookie.Value)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/sign-in", http.StatusFound)
+		return
+	}
+	fmt.Fprintf(w, "Current user: %s\n", user.Email)
 }
