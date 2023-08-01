@@ -55,7 +55,7 @@ func main() {
 		password_hash TEXT NOT NULL
 	);
 
-	CREATE TABLE IF NOT EXISTS session (
+	CREATE TABLE IF NOT EXISTS sessions (
 		id SERIAL PRIMARY KEY,
 		user_id INT UNIQUE,
 		token_hash TEXT NOT NULL
@@ -90,7 +90,8 @@ func main() {
 
 	r.Get("/sign-up", usersC.New)
 	r.Get("/sign-in", usersC.SignIn)
-	r.Post("/sign-in", usersC.ProccessSignIn)
+	r.Post("/sign-in", usersC.ProcessSignIn)
+	r.Post("/sign-out", usersC.ProcessingSignOut)
 	r.Post("/users", usersC.Create)
 	r.Get("/users/me", usersC.CurrentUser)
 

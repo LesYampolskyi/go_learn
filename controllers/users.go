@@ -53,7 +53,7 @@ func (u Users) Create(w http.ResponseWriter, r *http.Request) {
 	// fmt.Fpr int(w, "Password: ", r.FormValue("password"))
 }
 
-func (u Users) ProccessSignIn(w http.ResponseWriter, r *http.Request) {
+func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Email    string
 		Password string
@@ -94,4 +94,21 @@ func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Fprintf(w, "Current user: %s\n", user.Email)
+}
+
+func (u Users) ProcessingSignOut(w http.ResponseWriter, r *http.Request) {
+	tokenCookie, err := r.Cookie(CookieSession)
+	if err != nil {
+		http.Redirect(w, r, "/sign-in", http.StatusFound)
+		return
+	}
+	err = u.SessionService.Delete(tokenCookie.Value)
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Something went wrong", http.StatusInternalServerError)
+		return
+	}
+	deleteCookie(w, CookieSession)
+	http.Redirect(w, r, "/sign-in", http.StatusFound)
+
 }

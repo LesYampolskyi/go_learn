@@ -43,7 +43,7 @@ func (ss *SessionService) Create(userID int) (*Session, error) {
 		TokenHash: ss.hash(token),
 	}
 	row := ss.DB.QueryRow(`
-		UPDATE session 
+		UPDATE sessions 
 		SET token_hash = $2 
 		WHERE user_id = $1
 		RETURNING id;`, session.UserID, session.TokenHash)
@@ -51,7 +51,7 @@ func (ss *SessionService) Create(userID int) (*Session, error) {
 
 	if err == sql.ErrNoRows {
 		row = ss.DB.QueryRow(`
-		INSERT INTO session (user_id, token_hash) 
+		INSERT INTO sessions (user_id, token_hash) 
 		VALUES ($1, $2)
 		RETURNING id;`, session.UserID, session.TokenHash)
 
@@ -70,7 +70,7 @@ func (ss *SessionService) User(token string) (*User, error) {
 	var user User
 	row := ss.DB.QueryRow(`
 		SELECT user_id
-		FROM session
+		FROM sessions
 		WHERE token_hash = $1;
 	`, tokenHash)
 
@@ -91,6 +91,20 @@ func (ss *SessionService) User(token string) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (ss *SessionService) Delete(token string) error {
+	tokenHash := ss.hash(token)
+	_, err := ss.DB.Exec(`
+		DELETE FROM sessions
+		WHERE token_hash = $1;
+	`, tokenHash)
+
+	if err != nil {
+		return fmt.Errorf("delete: %w", err)
+	}
+
+	return nil
 }
 
 func (ss *SessionService) hash(token string) string {
