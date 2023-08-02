@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"web_dev/controllers"
+	"web_dev/migrations"
 	"web_dev/models"
 	"web_dev/templates"
 	"web_dev/views"
@@ -42,26 +43,15 @@ func main() {
 	cfg := models.GetDefaultPostgresConfig()
 
 	db, err := models.Open(cfg)
+	fmt.Println(cfg.String())
 
 	if err != nil {
 		panic(err)
 	}
 	defer db.Close()
 
-	_, err = db.Exec(`
-	CREATE TABLE IF NOT EXISTS users (
-		id SERIAL PRIMARY KEY,
-		email TEXT UNIQUE NOT NULL,
-		password_hash TEXT NOT NULL
-	);
-
-	CREATE TABLE IF NOT EXISTS sessions (
-		id SERIAL PRIMARY KEY,
-		user_id INT UNIQUE,
-		token_hash TEXT NOT NULL
-	);
-`)
-
+	err = models.MigrateFS(db, migrations.FS, "")
+	// err = models.Migrate(db, "migrations")
 	if err != nil {
 		panic(err)
 	}
