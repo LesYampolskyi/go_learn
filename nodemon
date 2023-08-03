@@ -7,3 +7,6 @@ goose postgres "host=localhost port=5432 user=user password=pas123 dbname=godb s
 goose create users sql
 
 go mod tidy
+
+
+context???

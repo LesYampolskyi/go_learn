@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"web_dev/context"
 	"web_dev/models"
 )
 
@@ -81,18 +82,7 @@ func (u Users) ProcessSignIn(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	tokenCookie, err := r.Cookie(CookieSession)
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/sign-in", http.StatusFound)
-		return
-	}
-	user, err := u.SessionService.User(tokenCookie.Value)
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/sign-in", http.StatusFound)
-		return
-	}
+	user := context.User(r.Context())
 	fmt.Fprintf(w, "Current user: %s\n", user.Email)
 }
 
@@ -111,4 +101,45 @@ func (u Users) ProcessingSignOut(w http.ResponseWriter, r *http.Request) {
 	deleteCookie(w, CookieSession)
 	http.Redirect(w, r, "/sign-in", http.StatusFound)
 
+}
+
+type UserMiddleware struct {
+	SessionService *models.SessionService
+}
+
+// func(http.Handler) http.http.Handler
+func (umw UserMiddleware) SetUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tokenCookie, err := r.Cookie(CookieSession)
+		if err != nil {
+			fmt.Println(err)
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		user, err := umw.SessionService.User(tokenCookie.Value)
+		if err != nil {
+			fmt.Println(err)
+			next.ServeHTTP(w, r)
+			return
+		}
+		ctx := r.Context()
+		ctx = context.WithUser(ctx, user)
+
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+
+}
+
+func (umw UserMiddleware) RequireUser(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		user := context.User(r.Context())
+		if user == nil {
+			http.Redirect(w, r, "/sign-in", http.StatusFound)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
