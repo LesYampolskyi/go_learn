@@ -16,15 +16,17 @@
         <a class="pr-6 font-semibold text-lg hover:text-blue-100" href="/faq">Faq</a>
       </div>
       <div>
+      {{ if currentUser}}
         <form action="/sign-out" method="post">
           <div class="hidden">
             {{csrfField}}
           </div>
           <button type="submit">Sign out</button>
         </form>
+        {{ else }}
         <a href="/sign-in">Sign in</a>
         <a href="/sign-up">Sign up</a>
-      
+        {{ end }}
       </div>
     </nav>
   </header>
