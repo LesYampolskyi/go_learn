@@ -1,0 +1,22 @@
+{{ template "header" }}
+<h1>Forgot password your password? </h1>
+<form action="/forgot-pw" method="post">
+ <div class="hidden">
+    {{csrfField}}
+  </div>
+  <div>
+    <label for="email">Email</label>
+    <input name="email" type="email" id="email" placeholder="Enter email"  required
+    value="{{.Email}}" autofocus
+    />
+  </div>
+  <div>
+    <button type="submit">Reset password</button>
+  </div>
+
+</form>
+  <div>
+    <p><a href="/sign-in">Sign-in</a> </p>
+    <p><a href="/sign-up">Sign-up</a> </p>
+  </div>
+{{ template "footer" }}

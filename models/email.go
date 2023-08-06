@@ -25,12 +25,12 @@ type Email struct {
 	HTML      string
 }
 
-func NewEmailService(config SMTPConfig) (*EmailService, error) {
+func NewEmailService(config SMTPConfig) *EmailService {
 	es := EmailService{
 		// TODO setup fields
 		dialer: mail.NewDialer(config.Host, config.Port, config.Username, config.Password),
 	}
-	return &es, nil
+	return &es
 }
 
 type EmailService struct {

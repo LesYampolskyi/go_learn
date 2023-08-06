@@ -10,3 +10,6 @@ go mod tidy
 
 
 context???
+
+migration in /migrations goose create password_reset sql
+goose fix -> data -> 0001,0002...
