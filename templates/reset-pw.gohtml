@@ -1,0 +1,40 @@
+{{ template "header" }}
+<h1>Reset password </h1>
+<form action="/reset-pw" method="post">
+ <div class="hidden">
+    {{csrfField}}
+  </div>
+
+  <div>
+    <label for="password">New Password</label>
+    <input name="password" type="password" id="password" placeholder="Enter password" 
+    required autofocus />
+
+  </div>
+  {{ if .Token}}
+  <div class="hidden">
+    <input type="hidden" id="token" name="token" value="{{.Token}}" />
+  </div>
+  {{ else }}
+      <div>
+    <label for="token">Password Reset Token</label>
+    <input 
+      name="token" 
+      type="text" 
+      id="token" 
+      placeholder="You should have recieve this in your email" 
+      required 
+    />
+
+  </div>
+  {{ end }}
+  <div>
+    <button type="submit">Update password</button>
+  </div>
+
+</form>
+  <div>
+    <p><a href="/sign-up">Sign-up</a> </p>
+    <p><a href="/sign-in">Sign-in</a> </p>
+  </div>
+{{ template "footer" }}

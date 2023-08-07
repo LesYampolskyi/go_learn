@@ -30,8 +30,22 @@
       </div>
     </nav>
   </header>
+    <!-- ALERTS -->
+{{ if errors }}
+<div style="background-color: red">
+  {{ range errors}}
+    <div>
+      <div>
+        {{ . }}
+      </div>
+    
+    </div>
+  {{ end}}
+</div>
+{{ end }}
 {{ end }}
   <!-- Each page's content goes here -->
+
 
 {{ define "footer"}}
  <footer>Copyright some rights 2023</footer>
