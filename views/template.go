@@ -1,6 +1,7 @@
 package views
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -14,6 +15,10 @@ import (
 
 type Template struct {
 	htmlTlp *template.Template
+}
+
+type public interface {
+	Public() string
 }
 
 func Must(t Template, err error) Template {
@@ -34,11 +39,7 @@ func ParseFS(fs fs.FS, pattern ...string) (Template, error) {
 				return "", fmt.Errorf("currentUser is not implemented")
 			},
 			"errors": func() []string {
-				return []string{
-					"Don't do that",
-					// "The email address you provided is already associated with an account",
-					"Something went wrong",
-				}
+				return nil
 			},
 		},
 	)
@@ -51,7 +52,7 @@ func ParseFS(fs fs.FS, pattern ...string) (Template, error) {
 	}, nil
 }
 
-func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface{}) {
+func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface{}, errs ...error) {
 	w.Header().Set("Content-type", "text/html; charset=utf-8")
 
 	// TODO:: check without Cloning
@@ -61,6 +62,7 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 		http.Error(w, "There was an error rendering the page.", http.StatusInternalServerError)
 		return
 	}
+	errMsgs := errMessages(errs...)
 	tpl = tpl.Funcs(
 		template.FuncMap{
 			"csrfField": func() template.HTML {
@@ -68,6 +70,9 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 			},
 			"currentUser": func() *models.User {
 				return context.User(r.Context())
+			},
+			"errors": func() []string {
+				return errMsgs
 			},
 		},
 	)
@@ -80,4 +85,19 @@ func (t Template) Execute(w http.ResponseWriter, r *http.Request, data interface
 		return
 	}
 	// io.Copy(w, &buf)
+}
+
+func errMessages(errs ...error) []string {
+	// double println
+	var msgs []string
+	for _, err := range errs {
+		var pubErr public
+		if errors.As(err, &pubErr) {
+			msgs = append(msgs, err.Error())
+		} else {
+			fmt.Println(err)
+			msgs = append(msgs, "Something went wrong.")
+		}
+	}
+	return msgs
 }
