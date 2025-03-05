@@ -1,3 +1,3 @@
-module web_dev
+module tdd_lessons
 
 go 1.24.0
